@@ -1,9 +1,11 @@
 <?php
 
-namespace Ruzaik11\SeederTracker;
+namespace Ruzaik\SeederTracker;
 
 use Illuminate\Support\ServiceProvider;
-use Ruzaik11\SeederTracker\Commands\SeederStatusCommand;
+use Ruzaik\SeederTracker\Commands\SeederStatusCommand;
+use Ruzaik\SeederTracker\Commands\SeederPerformanceCommand;
+use Ruzaik\SeederTracker\Commands\SeederCleanupCommand;
 
 class SeederTrackerServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,8 @@ class SeederTrackerServiceProvider extends ServiceProvider
 
             $this->commands([
                 SeederStatusCommand::class,
+                SeederPerformanceCommand::class,
+                SeederCleanupCommand::class,
             ]);
         }
 

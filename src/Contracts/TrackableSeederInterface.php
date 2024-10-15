@@ -1,6 +1,6 @@
 <?php
 
-namespace Ruzaik11\SeederTracker\Contracts;
+namespace Ruzaik\SeederTracker\Contracts;
 
 interface TrackableSeederInterface
 {

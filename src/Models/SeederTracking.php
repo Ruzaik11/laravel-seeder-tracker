@@ -1,6 +1,6 @@
 <?php
 
-namespace Ruzaik11\SeederTracker\Models;
+namespace Ruzaik\SeederTracker\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

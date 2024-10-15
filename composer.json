@@ -1,5 +1,5 @@
 {
-    "name": "Ruzaik11/laravel-seeder-tracker",
+    "name": "ruzaik11/laravel-seeder-tracker",
     "description": "Track Laravel seeders execution like migrations with batch support and status management",
     "keywords": [
         "laravel",
@@ -38,18 +38,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Ruzaik11\\SeederTracker\\": "src/"
+            "Ruzaik\\SeederTracker\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Ruzaik11\\SeederTracker\\Tests\\": "tests/"
+            "Ruzaik\\SeederTracker\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Ruzaik11\\SeederTracker\\SeederTrackerServiceProvider"
+                "Ruzaik\\SeederTracker\\SeederTrackerServiceProvider"
             ]
         }
     },

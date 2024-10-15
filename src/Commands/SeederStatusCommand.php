@@ -1,17 +1,17 @@
 <?php
 
-namespace Ruzaik11\SeederTracker\Commands;
+namespace Ruzaik\SeederTracker\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Ruzaik11\SeederTracker\Models\SeederTracking;
+use Ruzaik\SeederTracker\Models\SeederTracking;
 
 class SeederStatusCommand extends Command
 {
     protected $signature = 'seeder:status 
                            {--reset= : Reset specific seeder tracking}
                            {--reset-all : Reset all seeder tracking}
-                           {--show-performance : Show performance metrics}';
+                           {--detailed : Show detailed information}';
     
     protected $description = 'Show seeder execution status and manage tracking';
 
@@ -26,10 +26,6 @@ class SeederStatusCommand extends Command
         }
 
         $this->showSeederStatus();
-        
-        if ($this->option('show-performance')) {
-            $this->showPerformanceMetrics();
-        }
     }
 
     protected function showSeederStatus()
@@ -40,12 +36,9 @@ class SeederStatusCommand extends Command
         $this->info('📊 Seeder Execution Status');
         $this->line('');
 
-        if ($allSeeders->isEmpty()) {
-            $this->warn('No seeder files found in database/seeders directory.');
-            return;
-        }
-
-        $headers = ['Seeder', 'Status', 'Executed At', 'Batch', 'Execution Time'];
+        $headers = $this->option('detailed') 
+            ? ['Seeder', 'Status', 'Executed At', 'Batch', 'Execution Time', 'Memory Used']
+            : ['Seeder', 'Status', 'Executed At', 'Batch'];
         $rows = [];
 
         foreach ($allSeeders as $seeder) {
@@ -53,89 +46,63 @@ class SeederStatusCommand extends Command
             
             if ($executed) {
                 $metadata = $executed->metadata ?? [];
-                $executionTime = isset($metadata['execution_time_ms']) 
-                    ? $metadata['execution_time_ms'] . 'ms' 
-                    : 'N/A';
-
-                $rows[] = [
+                $row = [
                     class_basename($seeder),
                     '<info>✅ Executed</info>',
                     $executed->executed_at->format('M j, Y H:i'),
-                    $executed->batch,
-                    $executionTime
+                    $executed->batch
                 ];
+
+                if ($this->option('detailed')) {
+                    $row[] = isset($metadata['execution_time_ms']) ? $metadata['execution_time_ms'] . 'ms' : 'N/A';
+                    $row[] = isset($metadata['memory_used_mb']) ? $metadata['memory_used_mb'] . 'MB' : 'N/A';
+                }
+
+                $rows[] = $row;
             } else {
-                $rows[] = [
+                $row = [
                     class_basename($seeder),
                     '<comment>⏳ Pending</comment>',
                     'Not executed',
-                    'N/A',
                     'N/A'
                 ];
+
+                if ($this->option('detailed')) {
+                    $row[] = 'N/A';
+                    $row[] = 'N/A';
+                }
+
+                $rows[] = $row;
             }
         }
 
         $this->table($headers, $rows);
         
         $executedCount = $executedSeeders->count();
-        $totalCount = $allSeeders->count();
+        $totalCount = count($allSeeders);
         $this->line('');
         $this->info("Summary: {$executedCount}/{$totalCount} seeders executed");
     }
 
-    protected function showPerformanceMetrics()
-    {
-        $seeders = SeederTracking::whereJsonContains('metadata->execution_time_ms', '!=', null)
-            ->orderBy('executed_at', 'desc')
-            ->get();
-
-        if ($seeders->isEmpty()) {
-            return;
-        }
-
-        $this->line('');
-        $this->info('⚡ Performance Metrics');
-        $this->line('');
-
-        $totalTime = 0;
-        $fastest = null;
-        $slowest = null;
-
-        foreach ($seeders as $seeder) {
-            $time = $seeder->metadata['execution_time_ms'] ?? 0;
-            $totalTime += $time;
-            
-            if (!$fastest || $time < $fastest['time']) {
-                $fastest = ['name' => class_basename($seeder->seeder_name), 'time' => $time];
-            }
-            
-            if (!$slowest || $time > $slowest['time']) {
-                $slowest = ['name' => class_basename($seeder->seeder_name), 'time' => $time];
-            }
-        }
-
-        $avgTime = round($totalTime / $seeders->count(), 2);
-
-        $this->line("🏃 Fastest: {$fastest['name']} ({$fastest['time']}ms)");
-        $this->line("🐌 Slowest: {$slowest['name']} ({$slowest['time']}ms)");
-        $this->line("📊 Average: {$avgTime}ms");
-        $this->line("⏱️  Total time: " . round($totalTime / 1000, 2) . "s");
-    }
-
-    protected function getAllSeederFiles()
+    protected function getAllSeederFiles(): array
     {
         $seederPath = database_path('seeders');
         
         if (!File::exists($seederPath)) {
-            return collect([]);
+            return [];
         }
 
         $files = File::glob($seederPath . '/*Seeder.php');
         
-        return collect($files)->map(function ($file) {
+        $seeders = [];
+        foreach ($files as $file) {
             $className = pathinfo($file, PATHINFO_FILENAME);
-            return $className !== 'DatabaseSeeder' ? "Database\\Seeders\\{$className}" : null;
-        })->filter()->values();
+            if ($className !== 'DatabaseSeeder') {
+                $seeders[] = "Database\\Seeders\\{$className}";
+            }
+        }
+
+        return $seeders;
     }
 
     protected function resetSpecificSeeder(string $seederName)
@@ -151,7 +118,7 @@ class SeederStatusCommand extends Command
 
     protected function resetAllSeeders()
     {
-        if ($this->confirm('⚠️  Are you sure you want to reset ALL seeder tracking? This cannot be undone.')) {
+        if ($this->confirm('⚠️  Are you sure you want to reset ALL seeder tracking?')) {
             $count = SeederTracking::count();
             SeederTracking::truncate();
             $this->info("✅ Reset tracking for {$count} seeders.");

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ruzaik11\SeederTracker\Traits;
+namespace Ruzaik\SeederTracker\Traits;
 
 use Illuminate\Support\Facades\DB;
 

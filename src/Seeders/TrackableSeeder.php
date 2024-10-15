@@ -1,14 +1,17 @@
 <?php
 
-namespace Ruzaik11\SeederTracker\Seeders;
+namespace Ruzaik\SeederTracker\Seeders;
 
 use Illuminate\Database\Seeder;
-use Ruzaik11\SeederTracker\Contracts\TrackableSeederInterface;
-use Ruzaik11\SeederTracker\Models\SeederTracking;
+use Ruzaik\SeederTracker\Contracts\TrackableSeederInterface;
+use Ruzaik\SeederTracker\Models\SeederTracking;
+use Ruzaik\SeederTracker\Traits\PerformanceMonitor;
 use Carbon\Carbon;
 
 abstract class TrackableSeeder extends Seeder implements TrackableSeederInterface
 {
+    use PerformanceMonitor;
+
     public function hasBeenExecuted(): bool
     {
         return SeederTracking::hasBeenExecuted(get_class($this));
@@ -30,6 +33,7 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
             return;
         }
 
+<<<<<<< HEAD
         $startTime = microtime(true);
         
         try {
@@ -61,6 +65,22 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
             $this->command->error("❌ Seeder {$seederName} failed: " . $e->getMessage());
             throw $e;
         }
+=======
+        $this->startPerformanceTracking();
+        
+        $this->seedData();
+        
+        $performanceData = $this->endPerformanceTracking();
+        
+        SeederTracking::create([
+            'seeder_name' => get_class($this),
+            'executed_at' => Carbon::now(),
+            'batch' => SeederTracking::getNextBatch(),
+            'metadata' => $performanceData,
+        ]);
+
+        $this->command->info("Seeder executed in {$performanceData['execution_time_ms']}ms");
+>>>>>>> feature/performance-monitoring
     }
 }
 

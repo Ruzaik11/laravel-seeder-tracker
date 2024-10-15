@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Ruzaik11\SeederTracker\Seeders\TrackableSeeder;
-use Ruzaik11\SeederTracker\Traits\SeederHelper;
+use Ruzaik\SeederTracker\Seeders\TrackableSeeder;
+use Ruzaik\SeederTracker\Traits\SeederHelper;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
