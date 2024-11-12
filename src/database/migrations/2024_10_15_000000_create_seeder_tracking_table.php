@@ -12,6 +12,7 @@ class CreateSeederTrackingTable extends Migration
             $table->id();
             $table->string('seeder_name')->unique();
             $table->timestamp('executed_at');
+            $table->string('batch')->nullable();
             $table->timestamps();
         });
     }
