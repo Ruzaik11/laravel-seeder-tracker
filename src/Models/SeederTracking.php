@@ -6,17 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class SeederTracking extends Model
 {
-    protected $table = 'seeder_tracking';
-    
     protected $fillable = [
         'seeder_name',
         'executed_at',
         'batch',
+        'metadata',
     ];
 
     protected $casts = [
         'executed_at' => 'datetime',
+        'metadata' => 'array',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->setTable(config('seeder-tracker.table', 'seeder_tracking'));
+    }
 
     public static function hasBeenExecuted(string $seederName): bool
     {

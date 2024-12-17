@@ -23,17 +23,35 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
 
     public function run()
     {
-        if ($this->hasBeenExecuted()) {
+        if ($this->hasBeenExecuted() && config('seeder-tracker.prevent_duplicates', true)) {
             $this->command->info("Seeder " . get_class($this) . " already executed. Skipping...");
             return;
         }
 
-        $this->seedData();
+        $startTime = microtime(true);
         
-        SeederTracking::create([
-            'seeder_name' => get_class($this),
-            'executed_at' => Carbon::now(),
-            'batch' => SeederTracking::getNextBatch(),
-        ]);
+        try {
+            $result = $this->seedData();
+            
+            $endTime = microtime(true);
+            $executionTime = round(($endTime - $startTime) * 1000, 2);
+            
+            SeederTracking::create([
+                'seeder_name' => get_class($this),
+                'executed_at' => Carbon::now(),
+                'batch' => SeederTracking::getNextBatch(),
+                'metadata' => [
+                    'execution_time_ms' => $executionTime,
+                    'result' => $result,
+                    'timestamp' => Carbon::now()->toISOString()
+                ],
+            ]);
+
+            $this->command->info("Seeder " . get_class($this) . " executed successfully in {$executionTime}ms");
+
+        } catch (\Exception $e) {
+            $this->command->error("Seeder " . get_class($this) . " failed: " . $e->getMessage());
+            throw $e;
+        }
     }
 }
