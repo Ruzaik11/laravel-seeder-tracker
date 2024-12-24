@@ -1,15 +1,49 @@
 {
     "name": "Ruzaik11/laravel-seeder-tracker",
-    "description": "Track Laravel seeders execution like migrations",
+    "description": "Track Laravel seeders execution like migrations with batch support and status management",
+    "keywords": [
+        "laravel",
+        "seeder",
+        "database",
+        "tracking",
+        "migration",
+        "batch"
+    ],
     "license": "MIT",
     "authors": [
         {
             "name": "Ruzaik Nazeer",
-            "email": "ruzaiknazeer@gmail.com"
+            "email": "ruzaiknazeer@gmail.com",
+            "homepage": "https://ruzaik.dev"
         }
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^9.0|^10.0|^11.0"
-    }
+        "illuminate/support": "^9.0|^10.0|^11.0",
+        "illuminate/database": "^9.0|^10.0|^11.0",
+        "illuminate/console": "^9.0|^10.0|^11.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "phpunit/phpunit": "^9.5|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ruzaik11\\SeederTracker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ruzaik11\\SeederTracker\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ruzaik11\\SeederTracker\\SeederTrackerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
