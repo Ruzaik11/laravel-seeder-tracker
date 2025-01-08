@@ -23,8 +23,10 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
 
     public function run()
     {
+        $seederName = get_class($this);
+        
         if ($this->hasBeenExecuted() && config('seeder-tracker.prevent_duplicates', true)) {
-            $this->command->info("Seeder " . get_class($this) . " already executed. Skipping...");
+            $this->command->info("Seeder {$seederName} already executed. Skipping...");
             return;
         }
 
@@ -36,21 +38,27 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
             $endTime = microtime(true);
             $executionTime = round(($endTime - $startTime) * 1000, 2);
             
-            SeederTracking::create([
-                'seeder_name' => get_class($this),
+            $tracking = SeederTracking::create([
+                'seeder_name' => $seederName,
                 'executed_at' => Carbon::now(),
                 'batch' => SeederTracking::getNextBatch(),
                 'metadata' => [
                     'execution_time_ms' => $executionTime,
                     'result' => $result,
-                    'timestamp' => Carbon::now()->toISOString()
+                    'timestamp' => Carbon::now()->toISOString(),
+                    'environment' => app()->environment(),
                 ],
             ]);
 
-            $this->command->info("Seeder " . get_class($this) . " executed successfully in {$executionTime}ms");
+            $this->command->info("✅ Seeder {$seederName} executed successfully in {$executionTime}ms");
 
         } catch (\Exception $e) {
-            $this->command->error("Seeder " . get_class($this) . " failed: " . $e->getMessage());
+            // Clean up failed tracking record if it was created
+            SeederTracking::where('seeder_name', $seederName)
+                ->where('created_at', '>=', Carbon::now()->subMinute())
+                ->delete();
+                
+            $this->command->error("❌ Seeder {$seederName} failed: " . $e->getMessage());
             throw $e;
         }
     }
