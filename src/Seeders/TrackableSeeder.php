@@ -63,3 +63,12 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
         }
     }
 }
+
+    /**
+     * Check if we should force run regardless of tracking
+     */
+    protected function shouldForceRun(): bool
+    {
+        return !config('seeder-tracker.prevent_duplicates', true) ||
+               !in_array(app()->environment(), config('seeder-tracker.strict_environments', []));
+    }
