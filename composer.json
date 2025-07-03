@@ -20,16 +20,16 @@
             "role": "Developer"
         }
     ],
-    "homepage": "https://github.com/ruzaiknazeer/laravel-seeder-tracker",
+    "homepage": "https://github.com/Ruzaik11/laravel-seeder-tracker",
     "support": {
-        "issues": "https://github.com/ruzaiknazeer/laravel-seeder-tracker/issues",
-        "source": "https://github.com/ruzaiknazeer/laravel-seeder-tracker"
+        "issues": "https://github.com/Ruzaik11/laravel-seeder-tracker/issues",
+        "source": "https://github.com/Ruzaik11/laravel-seeder-tracker"
     },
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^9.0|^10.0|^11.0",
-        "illuminate/database": "^9.0|^10.0|^11.0",
-        "illuminate/console": "^9.0|^10.0|^11.0"
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/console": "^9.0|^10.0|^11.0|^12.0"
     },
     "require-dev": {
         "orchestra/testbench": "^7.0|^8.0|^9.0",
