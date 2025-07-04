@@ -33,28 +33,28 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
             return;
         }
 
-<<<<<<< HEAD
-        $startTime = microtime(true);
+        $this->startPerformanceTracking();
         
         try {
             $result = $this->seedData();
             
-            $endTime = microtime(true);
-            $executionTime = round(($endTime - $startTime) * 1000, 2);
+            $performanceData = $this->endPerformanceTracking();
             
-            $tracking = SeederTracking::create([
+            // Merge performance data with result data
+            $metadata = array_merge($performanceData, [
+                'result' => $result,
+                'timestamp' => Carbon::now()->toISOString(),
+                'environment' => app()->environment(),
+            ]);
+            
+            SeederTracking::create([
                 'seeder_name' => $seederName,
                 'executed_at' => Carbon::now(),
                 'batch' => SeederTracking::getNextBatch(),
-                'metadata' => [
-                    'execution_time_ms' => $executionTime,
-                    'result' => $result,
-                    'timestamp' => Carbon::now()->toISOString(),
-                    'environment' => app()->environment(),
-                ],
+                'metadata' => $metadata,
             ]);
 
-            $this->command->info("✅ Seeder {$seederName} executed successfully in {$executionTime}ms");
+            $this->command->info("✅ Seeder {$seederName} executed successfully in {$performanceData['execution_time_ms']}ms");
 
         } catch (\Exception $e) {
             // Clean up failed tracking record if it was created
@@ -65,24 +65,7 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
             $this->command->error("❌ Seeder {$seederName} failed: " . $e->getMessage());
             throw $e;
         }
-=======
-        $this->startPerformanceTracking();
-        
-        $this->seedData();
-        
-        $performanceData = $this->endPerformanceTracking();
-        
-        SeederTracking::create([
-            'seeder_name' => get_class($this),
-            'executed_at' => Carbon::now(),
-            'batch' => SeederTracking::getNextBatch(),
-            'metadata' => $performanceData,
-        ]);
-
-        $this->command->info("Seeder executed in {$performanceData['execution_time_ms']}ms");
->>>>>>> feature/performance-monitoring
     }
-}
 
     /**
      * Check if we should force run regardless of tracking
@@ -92,3 +75,4 @@ abstract class TrackableSeeder extends Seeder implements TrackableSeederInterfac
         return !config('seeder-tracker.prevent_duplicates', true) ||
                !in_array(app()->environment(), config('seeder-tracker.strict_environments', []));
     }
+}
