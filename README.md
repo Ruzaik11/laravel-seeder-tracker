@@ -9,6 +9,7 @@ Track your Laravel seeders execution like migrations with batch support, executi
 ## ✨ Why Use Seeder Tracker?
 
 In large Laravel applications, managing database seeders becomes complex:
+
 - **Duplicate executions** can corrupt data or waste time
 - **No visibility** into which seeders have run
 - **Performance issues** go unnoticed
@@ -62,7 +63,7 @@ class UsersTableSeeder extends TrackableSeeder
     {
         // Your seeding logic
         $users = User::factory(100)->create();
-        
+
         // Return metadata for tracking
         return [
             'users_created' => $users->count(),
@@ -101,6 +102,7 @@ Summary: 1/2 seeders executed
 ## 📋 Available Commands
 
 ### Status Management
+
 ```bash
 # Basic status
 php artisan seeder:status
@@ -116,6 +118,7 @@ php artisan seeder:status --reset-all
 ```
 
 ### Performance Analytics
+
 ```bash
 # Show performance insights
 php artisan seeder:performance
@@ -124,7 +127,90 @@ php artisan seeder:performance
 php artisan seeder:performance --limit=5
 ```
 
+### Mark Seeders as Executed
+
+```bash
+# List all available seeders
+php artisan seeder:mark --list
+
+# Mark all pending seeders as executed
+php artisan seeder:mark --all
+
+# Mark specific seeder as executed
+php artisan seeder:mark --seeder=UsersTableSeeder
+
+# Mark with custom batch number
+php artisan seeder:mark --all --batch=5
+
+# Skip confirmation prompts
+php artisan seeder:mark --all --force
+```
+
+### Cleanup
+
+```bash
+# Clean up old tracking records
+php artisan seeder:cleanup --days=30
+
+# Force cleanup without confirmation
+php artisan seeder:cleanup --days=30 --force
+```
+
 ## 🔧 Advanced Usage
+
+### Using TracksExecution Trait (No Inheritance Required)
+
+For existing seeders that you don't want to modify extensively, use the `TracksExecution` trait:
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Ruzaik\SeederTracker\Traits\TracksExecution;
+use App\Models\User;
+
+class UsersSeeder extends Seeder
+{
+    use TracksExecution;
+
+    // Option 1: Override executeSeederLogic() method
+    protected function executeSeederLogic()
+    {
+        // Your existing seeder code - no changes needed!
+        User::factory(100)->create();
+
+        // Optionally return metadata
+        return ['users_created' => 100];
+    }
+
+    // Option 2: Or implement seedData() method (TrackableSeeder compatible)
+    protected function seedData()
+    {
+        $users = User::factory(50)->create();
+        return ['users_created' => $users->count()];
+    }
+}
+```
+
+**Benefits:**
+
+- ✅ No need to extend `TrackableSeeder`
+- ✅ Works with existing seeders
+- ✅ Optional return data
+- ✅ Same tracking features (performance, duplicate prevention)
+- ✅ Compatible with existing `seedData()` method
+
+**Usage:**
+
+```bash
+php artisan db:seed --class=UsersSeeder
+# ✅ Seeder UsersSeeder executed successfully in 1,234ms
+
+php artisan seeder:status
+# Shows tracked execution just like TrackableSeeder
+```
 
 ### Environment-Aware Seeding
 
@@ -134,7 +220,7 @@ use Ruzaik\SeederTracker\Traits\SeederHelper;
 class ProductionDataSeeder extends TrackableSeeder
 {
     use SeederHelper;
-    
+
     protected function seedData()
     {
         // Only run in specific environments
@@ -152,10 +238,10 @@ class ProductionDataSeeder extends TrackableSeeder
 protected function seedData()
 {
     $startCount = $this->getTableCount('products');
-    
+
     // Batch insert for better performance
     Product::insert($this->generateProductData(1000));
-    
+
     return [
         'products_created' => $this->getTableCount('products') - $startCount,
         'batch_size' => 1000,
@@ -173,7 +259,7 @@ protected function seedData()
         // All seeding logic in transaction
         $categories = Category::createMany($this->categoryData());
         $products = Product::createMany($this->productData());
-        
+
         return [
             'categories_created' => count($categories),
             'products_created' => count($products),
@@ -191,13 +277,13 @@ Customize behavior in `config/seeder-tracker.php`:
 return [
     // Database table for tracking
     'table' => 'seeder_tracking',
-    
+
     // Enable automatic tracking
     'auto_track' => true,
-    
+
     // Prevent duplicate executions
     'prevent_duplicates' => env('SEEDER_PREVENT_DUPLICATES', true),
-    
+
     // Strict environments (always prevent duplicates)
     'strict_environments' => ['production'],
 ];
@@ -251,6 +337,7 @@ composer test-coverage
 ## 📚 Examples
 
 Check the `examples/` directory for:
+
 - Basic seeder implementation
 - Advanced environment-aware seeding
 - Performance optimization techniques
@@ -265,7 +352,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and solutions.
 This package was developed over 3+ months with focus on:
 
 - **October 2024**: Foundation and core architecture
-- **November 2024**: Tracking logic and performance monitoring  
+- **November 2024**: Tracking logic and performance monitoring
 - **December 2024**: Enhanced commands and comprehensive documentation
 - **January 2025**: Community feedback and optimization
 
